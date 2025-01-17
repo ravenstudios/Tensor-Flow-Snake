@@ -15,10 +15,8 @@ class Apple(object):
 
 
     def new_loc(self):
-        self.x = random.randint(0, 20) * BLOCK_SIZE
-        self.y = random.randint(0, 20) * BLOCK_SIZE
-
-
+        self.x = random.randint(0, GRID_SIZE - 1) * BLOCK_SIZE
+        self.y = random.randint(0, GRID_SIZE - 1) * BLOCK_SIZE
 
 
 

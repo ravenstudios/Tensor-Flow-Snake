@@ -7,18 +7,20 @@ class Snake(object):
 
     def __init__(self):
         super(Snake, self).__init__()
-        self.x = 10 * BLOCK_SIZE
-        self.y = 10 * BLOCK_SIZE
+        self.x = (GRID_SIZE // 2) * BLOCK_SIZE
+        self.y = (GRID_SIZE // 2) * BLOCK_SIZE
         self.score = 0
-        self.body = [(self.x - BLOCK_SIZE, self.y), (self.x - BLOCK_SIZE * 2, self.y)]
+        self.body = []
         self.dir = 1
         self.update_interval = 250
         self.last_update_time = 0
         self.can_update = False
         self.border = 4
+        self.grow = False
+        self.apple = None
 
     def update(self, apple):
-
+        self.apple = apple
         current_time = pygame.time.get_ticks()
         if current_time - self.last_update_time >= self.update_interval:
             self.can_update = True
@@ -27,29 +29,26 @@ class Snake(object):
             self.can_update = False
 
 
-        self.key_handler()
+        # self.key_handler()
 
-        if self.can_update:
-            self.movment()
+        # if self.can_update:
+        self.movment()
 
         self.collide_apple(apple)
 
-        if self.check_body_collide():
-            print("body collide")
+        self.check_body_collide()
+        self.bounds_check()
 
 
-        if self.bounds_check():
-            print("bounds check")
+
+
 
 
     def collide_apple(self, apple):
         if self.x == apple.x and self.y == apple.y:
-            apple.new_loc()
             self.score += 1
-            new_pos_x = self.body[-1][0]
-            new_pos_y = self.body[-1][1]
-            self.body.append((new_pos_x, new_pos_y))
-
+            self.grow = True
+            apple.new_loc()
 
 
     def draw(self, surface):
@@ -70,22 +69,38 @@ class Snake(object):
         if self.dir == 3:
             self.x -= BLOCK_SIZE
         self.body.insert(0, prev_pos)
-        self.body.pop()
 
+        if self.grow:
+            self.grow = False
+        else:
+            self.body.pop()
 
 
     def check_body_collide(self):
         current_pos = (self.x, self.y)
-        return current_pos in self.body
+        if current_pos in self.body:
+            self.reset()
 
 
 
     def bounds_check(self):
-        return self.x < 0 or self.x + BLOCK_SIZE > GAME_WIDTH or self.y < 0 or self.y + BLOCK_SIZE > GAME_WIDTH
+        if self.x < 0 or self.x + BLOCK_SIZE > GAME_WIDTH or self.y < 0 or self.y + BLOCK_SIZE > GAME_WIDTH:
+            self.reset()
 
 
 
-    def key_handler(self, input=None):
+    def reset(self):
+        score = self.score
+        self.x = (GRID_SIZE // 2) * BLOCK_SIZE
+        self.y = (GRID_SIZE // 2) * BLOCK_SIZE
+        self.body = []
+        self.dir = 0
+        self.score = 0
+        return score
+
+
+    def key_handler(self, input):
+        print(f"input:{input}")
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_UP] or input == 0:
@@ -100,3 +115,12 @@ class Snake(object):
         if keys[pygame.K_LEFT] or input == 3:
             if self.dir != 1:
                 self.dir = 3
+
+    def get_state(self):
+        return {
+            x: self.x,
+            y: self.y,
+            body: self.body,
+            apple: self.apple,
+            score: self.score,
+        }
